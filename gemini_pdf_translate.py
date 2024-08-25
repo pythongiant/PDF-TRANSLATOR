@@ -4,16 +4,11 @@ import json
 import google.generativeai as genai
 from PIL import Image, ImageDraw, ImageFont
 import fitz  # PyMuPDF
-import pathlib
-import os
+import io
 
 # Initialize the model (ensure you have set the API key correctly)
 model = genai.GenerativeModel("gemini-1.5-flash")
 genai.configure(api_key="AIzaSyDVn7JNvECmdjtNuR24CMHiUla9K00B-e4")
-
-# Directory to save the uploaded files
-media = pathlib.Path(__file__).parent / "uploaded_files"
-os.makedirs(media, exist_ok=True)
 
 # Set up the Streamlit app
 st.title("PDF to Image Uploader and Translator")
@@ -95,9 +90,9 @@ if uploaded_pdf is not None:
     # Open the uploaded PDF file
     pdf = fitz.open(stream=uploaded_pdf.read(), filetype="pdf")
 
-    # Iterate through the pages and save them as images
+    # Iterate through the pages and process them in memory
     for page_number in range(len(pdf)):
-        print("Done page number ", page_number)
+        print("Processing page number ", page_number)
         page = pdf.load_page(page_number)
         pix = page.get_pixmap()
         img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
@@ -105,12 +100,13 @@ if uploaded_pdf is not None:
         # Add ruler to the image
         final_img = add_ruler(img)
 
-        # Save the image as 1.jpg, 2.jpg, etc.
-        img_path = os.path.join(media, f"{page_number + 1}.jpg")
-        final_img.save(img_path)
+        # Convert the image to a binary stream
+        img_stream = io.BytesIO()
+        final_img.save(img_stream, format='JPEG')
+        img_stream.seek(0)
 
-        # Load the saved image
-        img = PIL.Image.open(img_path)
+        # Load the image from the stream for drawing
+        img = PIL.Image.open(img_stream)
         draw = ImageDraw.Draw(img)
 
         # Generate content using Gemini API
@@ -156,7 +152,7 @@ if uploaded_pdf is not None:
                 draw.text((text_x, y), line, fill="black", font=font)
                 y += text_height
 
-        # Optionally, you could display the image
+        # Display the image in the Streamlit app without saving it
         st.image(img, caption=f"Page {page_number + 1}", use_column_width=True)
 
-    st.success(f"PDF has been converted to images, translated to {selected_language}, and saved in the '{media}' directory.")
+    st.success(f"PDF has been converted to images, translated to {selected_language}.")
