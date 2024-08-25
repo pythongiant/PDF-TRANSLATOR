@@ -1,0 +1,36 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.env
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Streamlit specific
+.streamlit/
+
+# Virtual environments
+venv/
+.env/
+env/
+.venv/
+ENV/
+
+# VSCode
+.vscode/
+
+# PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# OS generated files
+Thumbs.db
+.DS_Store
